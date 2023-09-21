@@ -119,10 +119,48 @@ class IllegalCharError(Error):
     def __init__(self, pos_start, pos_end, details):
         super().__init__(pos_start, pos_end, 'Illegal Character', details)
 
+class Grammercheck: 
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.token_idx = -1 # current token index
+        self.advance()
+
+class NumberNode:
+    def __init__(self, tok):
+        self.tok = tok
+
+class OperatorNode:
+    def __init__(self, left_node, operator_tok, right_node):
+        self.left_node = left_node
+        self.operator_tok = operator_tok
+        self.right_node = right_node
+
+    def __repr__(self):
+        return f'({self.left_node}, {self.operator_tok}, {self.right_node})'
+
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.token_idx = -1
+        self.advance()
+
+    def advance(self):
+        self.token_idx += 1
+        if self.token_idx < len(self.tokens):
+            self.current_token = self.tokens[self.token_idx]
+        return self.current_token
+    
+    def parse(self):
+        res = self.expr()
+        return res
+    
 if __name__ == "__main__":
     while True:
         # while True, ask for input and tokenize it
         text = input("RR_int> ")
+        if text == "q":
+            # if exit, break out of the loop
+            break
         lexer = Lexer(text)
         tokens, errors = lexer.make_tokens()
         if errors:
