@@ -119,24 +119,23 @@ class IllegalCharError(Error):
     def __init__(self, pos_start, pos_end, details):
         super().__init__(pos_start, pos_end, 'Illegal Character', details)
 
-class Grammercheck: 
-    def __init__(self, tokens):
-        self.tokens = tokens
-        self.token_idx = -1 # current token index
-        self.advance()
-
 class NumberNode:
-    def __init__(self, tok):
-        self.tok = tok
+    def __init__(self,token):
+        self.token = token
 
-class OperatorNode:
-    def __init__(self, left_node, operator_tok, right_node):
+    def __repr__(self):
+        return f'NumberNode({self.token.value})'
+
+
+class OperationNode:
+    def __init__(self, left_node, operator_token, right_node):
         self.left_node = left_node
-        self.operator_tok = operator_tok
+        self.operator_token = operator_token
         self.right_node = right_node
 
     def __repr__(self):
-        return f'({self.left_node}, {self.operator_tok}, {self.right_node})'
+        return f'OperationNode({self.left_node}, {self.operator_token.value}, {self.right_node})'
+
 
 class Parser:
     def __init__(self, tokens):
@@ -150,10 +149,63 @@ class Parser:
             self.current_token = self.tokens[self.token_idx]
         return self.current_token
     
-    def parse(self):
-        res = self.expr()
-        return res
-    
+    def parse (self):
+        expression = []
+
+        while self.current_token is not None:
+            print ("Parsing...", self.current_token)
+            self.advance()
+            if self.current_token == RR_int or self.current_token == RR_float:
+                self.factor()
+                print("factored")
+            elif self.current_token == RR_plus or self.current_token == RR_minus:
+                self.term()
+                print("termed")
+            elif self.current_token == RR_mul or self.current_token == RR_div:
+                self.expression()
+                print("expressed")
+            elif self.current_token == None:
+                print("Parsing Complete")
+                break
+            else:
+                print("error token:", self.current_token)
+                raise Exception("Parsing Error: Invalid Token")
+            self.advance()
+
+        
+                        
+
+    def factor(self):
+        current_token = self.current_token
+
+        if current_token == RR_int or current_token == RR_float:
+            self.advance()
+            return NumberNode(current_token)
+
+    def term(self):
+        left = self.factor()
+        opTree = self.factor()
+
+        while self.current_token == RR_mul or self.current_token == RR_div:
+            operator_token = self.current_token
+            self.advance()
+            right = self.factor()
+            opTree = OperationNode(left, operator_token, right)
+
+        return opTree
+
+    def expression(self):
+        left = self.term()
+        opTree = self.term()
+
+        while self.current_token == RR_plus or self.current_token == RR_minus:
+            operator_token = self.current_token
+            self.advance()
+            right = self.term()
+            opTree = OperationNode(left, operator_token, right)
+
+        return opTree
+
 if __name__ == "__main__":
     while True:
         # while True, ask for input and tokenize it
@@ -163,8 +215,14 @@ if __name__ == "__main__":
             break
         lexer = Lexer(text)
         tokens, errors = lexer.make_tokens()
-        if errors:
-            print(errors.as_string())  # Print each error separately
-        else:
+        if tokens: # For Tokenizing
             print("Inputed Text: ", text)
-            print("Generated Tokens: ", tokens)
+            print("Generated Tokens: ", tokens)  # Print each error separately
+            parser = Parser(tokens)
+            try:
+                result = parser.parse()
+                print("Expression Tree:", result)
+            except Exception as e:
+                print("Parsing Error:", str(e))
+        else:
+            print(errors.as_string())
