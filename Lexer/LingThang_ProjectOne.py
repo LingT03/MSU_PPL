@@ -1,4 +1,3 @@
-# Initialize the text to tokenize
 RR_int = "RR_int"
 RR_float = "RR_float"
 RR_plus = "RR_plus"
@@ -20,7 +19,7 @@ class Token:
     def __repr__(self):
         # Return a string representation of the class instance
         return f"{self.value}:{self.token_type}"
-
+         
 # Lexer class
 class Lexer:
     # init function to initialize the text, position, and current_character
@@ -68,15 +67,13 @@ class Lexer:
                     tokens.append(RR_div)
                     self.advance()
                 elif self.current_character == '(':
-                    # if open parenthesis, append RR_OpenPar to the tokens list
+                    # if left parenthesis, append RR_Parenthesis to the tokens list
                     tokens.append(RR_OpenPar)
                     self.advance()
                 elif self.current_character == ')':
-                    # if close parenthesis, append RR_ClosePar to the tokens list
+                    # if right parenthesis, append RR_Parenthesis to the tokens list
                     tokens.append(RR_ClosePar)
                     self.advance()
-                
-            
                 else:
                     char = self.current_character
                     errorchar = char
@@ -90,14 +87,13 @@ class Lexer:
                         # if we reach the end length of the text, break
                         if self.position >= len(self.text):
                             err_end = self.position
-                            print(err_end)
                             break
 
-                    err_end = self.position - 2 
+                    err_end = self.position - 1
 
                     return [], IllegalCharError( err_start, err_end, "'" + errorchar + "'")
 
-        return tokens
+        return tokens, None
 
     def make_digits(self):
         # function to check if the Digit is an int or float
@@ -121,7 +117,7 @@ class Lexer:
 
         elif dot_cnt == 1:  # one dot = float
             return Token(RR_float, float(dig_str))
-
+        
     def float_error(self, error_name):
         # function to catch multiple dots in a float
         result = f'{error_name} Second Dot on COL:{self.current_character}'
@@ -130,12 +126,12 @@ class Lexer:
 
 class Error:
     def __init__(self, err_start, err_end, error_name, details):
-        self.err_start = err_start + 1 # +1 to offset the 0 index
+        self.err_start = err_start
         self.err_end = err_end
         self.error_name = error_name
         self.details = details
 
-    def display(self):
+    def display_err(self):
     
         result = f'error name: {self.error_name}, Details: {self.details}\n'
         result += f'Error From COL: {self.err_start},  TO COL: {self.err_end}'
@@ -146,110 +142,14 @@ class IllegalCharError(Error):
     def __init__(self, err_start, err_end, details):
         super().__init__(err_start, err_end, 'Illegal Character', details)
 
-class NumberNode:
-    def __init__(self,token):
-        self.token = token
-
-    def __repr__(self):
-        return f'NumberNode({self.token.value})'
-
-
-class OperationNode:
-    def __init__(self, left_node, operator_token, right_node):
-        self.left_node = left_node
-        self.operator_token = operator_token
-        self.right_node = right_node
-
-    def __repr__(self):
-        return f'OperationNode({self.left_node}, {self.operator_token.value}, {self.right_node})'
-
-
-class Parser:
-    def __init__(self, tokens):
-        self.tokens = tokens
-        self.token_idx = -1
-        self.advance()
-
-    def advance(self):
-        self.token_idx += 1
-        if self.token_idx < len(self.tokens):
-            self.current_token = self.tokens[self.token_idx]
-        return self.current_token
-    
-    def parse (self):
-        expression = []
-
-        while self.current_token is not None:
-            print ("Parsing...", self.current_token)
-            self.advance()
-            if self.current_token == RR_int or self.current_token == RR_float:
-                self.factor()
-                print("factored")
-            elif self.current_token == RR_plus or self.current_token == RR_minus:
-                self.term()
-                print("termed")
-            elif self.current_token == RR_mul or self.current_token == RR_div:
-                self.expression()
-                print("expressed")
-            elif self.current_token == None:
-                print("Parsing Complete")
-                break
-            else:
-                print("error token:", self.current_token)
-                raise Exception("Parsing Error: Invalid Token")
-            self.advance()
-
-        
-                        
-
-    def factor(self):
-        current_token = self.current_token
-
-        if current_token == RR_int or current_token == RR_float:
-            self.advance()
-            return NumberNode(current_token)
-
-    def term(self):
-        left = self.factor()
-        opTree = self.factor()
-
-        while self.current_token == RR_mul or self.current_token == RR_div:
-            operator_token = self.current_token
-            self.advance()
-            right = self.factor()
-            opTree = OperationNode(left, operator_token, right)
-
-        return opTree
-
-    def expression(self):
-        left = self.term()
-        opTree = self.term()
-
-        while self.current_token == RR_plus or self.current_token == RR_minus:
-            operator_token = self.current_token
-            self.advance()
-            right = self.term()
-            opTree = OperationNode(left, operator_token, right)
-
-        return opTree
-
 if __name__ == "__main__":
     while True:
         # while True, ask for input and tokenize it
         text = input("RR_int> ")
-        if text == "q":
-            # if exit, break out of the loop
-            break
         lexer = Lexer(text)
         tokens, errors = lexer.make_tokens()
-        if tokens: # For Tokenizing
-            print("Inputed Text: ", text)
-            print("Generated Tokens: ", tokens)  # Print each error separately
-            parser = Parser(tokens)
-            try:
-                result = parser.parse()
-                print("Expression Tree:", result)
-            except Exception as e:
-                print("Parsing Error:", str(e))
+        if errors:
+            print(errors.display_err())
         else:
-            print(errors.display())
+            print("Inputed Text: ", text)
+            print("Output: ", tokens)
