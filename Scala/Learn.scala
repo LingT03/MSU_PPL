@@ -1,22 +1,18 @@
-object main {
+object CubeIT{
+  def MATHIT(number: Int, operation: Int => Int): Int = {
+    operation(number)
+  }
+
   def main(args: Array[String]): Unit = {
-    val courseMap = Map[Int, String]()
-    courseMap += (1 -> "Scala")
-    courseMap += (2 -> "Java")
-    courseMap += (3 -> "Python")
-    courseMap += (4 -> "C++")
+    def double(num: Int): Int = num * 2
 
-    val key = for (key <- courseMap.keys) yield(key)
-    // prints as set because keys are unique
-    println(key)
+    def square(num: Int): Int = num * num
 
-    val value = for (value <- courseMap.values) yield(value)
-    // prints as list because values can be duplicate
-    println(value)
+    val numberToCube: Int = 3
+    val resultDouble: Int = MATHIT(numberToCube, double)
+    val resultSquare: Int = MATHIT(numberToCube, square)
 
-    val swapmap = for ((key, value) <- courseMap) yield (value, key)
-    // prints as map because keys are unique
-    println(swapmap)
+    println(s"The double of $numberToCube is $resultDouble")
+    println(s"The square of $numberToCube is $resultSquare")
   }
 }
-
