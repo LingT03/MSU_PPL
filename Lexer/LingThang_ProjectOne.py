@@ -141,15 +141,3 @@ class Error:
 class IllegalCharError(Error):
     def __init__(self, err_start, err_end, details):
         super().__init__(err_start, err_end, 'Illegal Character', details)
-
-if __name__ == "__main__":
-    while True:
-        # while True, ask for input and tokenize it
-        text = input("RR_int> ")
-        lexer = Lexer(text)
-        tokens, errors = lexer.make_tokens()
-        if errors:
-            print(errors.display_err())
-        else:
-            print("Inputed Text: ", text)
-            print("Output: ", tokens)
