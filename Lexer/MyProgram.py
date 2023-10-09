@@ -3,14 +3,11 @@ RR_int = "RR_int"
 RR_float = "RR_float"
 RR_plus = "RR_plus"
 RR_minus = "RR_minus"
-DIGITS = '0123456789'
-
-# Project One Criteria 
 RR_mul = "RR_mul"
 RR_div = "RR_div"
 RR_OpenPar = "RR_OpenPar"
 RR_ClosePar = "RR_ClosePar"
-
+DIGITS = '0123456789'
 class Token:
     # Token class to store the token type and value
     def __init__(self, value, token_type):
@@ -21,13 +18,14 @@ class Token:
         # Return a string representation of the class instance
         return f"{self.value}:{self.token_type}"
 
-# Lexer class
 class Lexer:
     # init function to initialize the text, position, and current_character
-    def __init__(self, text):
+    def __init__(self, text, file_name):
         self.text = text
         self.position = 0  # Starting position
         self.current_character = self.text[self.position]  # current character of text
+        self.line_num = 1  # line number of the text
+        self.file_name = file_name
 
     def advance(self):
         # function to move to the next character
@@ -35,15 +33,17 @@ class Lexer:
         if self.position >= len(self.text):  # if we're at the end of the text
             self.current_character = None  # set current_character to None (no more characters to read)
         else:
-            self.current_character = self.text[self.position]  # otherwise, set current_character to the next character in the text
+            self.current_character = self.text[self.position]
+            if self.current_character == "\n":
+                self.line_num += 1
 
     def make_tokens(self):
         # function to make tokens
         tokens = []  # list to store tokens
+        errors = [] # list to store errors
 
         while self.current_character is not None:
-            # while we're not at the end of the text
-            # print statements to help with debugging
+            
 
                 if self.current_character.isspace():
                     # if space ignore and move to next character
@@ -81,7 +81,8 @@ class Lexer:
                     char = self.current_character
                     errorchar = char
                     err_start = self.position
-                    self.advance()
+                    line_num = self.line_num
+                    file_name = self.file_name
 
                     # go through the text until we reach a space a number integer or operator
                     while char is not None and char.isspace() is False and char not in DIGITS and char not in '+-*/':
@@ -89,15 +90,13 @@ class Lexer:
                         self.advance()
                         # if we reach the end length of the text, break
                         if self.position >= len(self.text):
-                            err_end = self.position
-                            print(err_end)
                             break
 
-                    err_end = self.position - 2 
+                        err_end = self.position - 1
 
-                    return [], IllegalCharError( err_start, err_end, "'" + errorchar + "'")
+                    errors.append(SyntaxError(file_name, line_num, err_start, err_end, "'" + errorchar + "'"))
 
-        return tokens
+        return tokens, errors
 
     def make_digits(self):
         # function to check if the Digit is an int or float
@@ -128,23 +127,59 @@ class Lexer:
         self.advance()
         return result
 
+class ParenthesisMatcher:
+    def __init__(self):
+        self.stack = []
+
+    def is_opening(self, char):
+        return char in '([{'
+
+    def is_closing(self, char):
+        return char in ')]}'
+
+    def matches(self, open_char, close_char):
+        return (open_char == '(' and close_char == ')') or \
+               (open_char == '[' and close_char == ']') or \
+               (open_char == '{' and close_char == '}')
+
+    def is_balanced(self, input_string):
+        for char in input_string:
+            if self.is_opening(char):
+                self.stack.append(char)
+            elif self.is_closing(char):
+                if not self.stack or not self.matches(self.stack.pop(), char):
+                    return False
+
+        return len(self.stack) == 0
+
+# Example usage:
+matcher = ParenthesisMatcher()
+input_string = "({[()]})"
+if matcher.is_balanced(input_string):
+    print("Parentheses are balanced.")
+else:
+    print("Parentheses are not balanced.")
+
 class Error:
-    def __init__(self, err_start, err_end, error_name, details):
-        self.err_start = err_start + 1 # +1 to offset the 0 index
-        self.err_end = err_end
+    def __init__(self, file_name ,line_num, col_start, col_end, error_name, details):
+        self.file_name = file_name
+        self.line_num = line_num
+        self.col_start = col_start
+        self.col_end = col_end
         self.error_name = error_name
         self.details = details
 
     def display(self):
-    
-        result = f'error name: {self.error_name}, Details: {self.details}\n'
-        result += f'Error From COL: {self.err_start},  TO COL: {self.err_end}'
+
+        result = f'File: {self.file_name}, Line: {self.line_num}\n'
+        result += f'error name: {self.error_name}, Details: {self.details}\n'
+        result += f'Error From COL: {self.col_start},  TO COL: {self.col_end}'
 
         return result
 
-class IllegalCharError(Error):
-    def __init__(self, err_start, err_end, details):
-        super().__init__(err_start, err_end, 'Illegal Character', details)
+class SyntaxError(Error):
+    def __init__(self, file_name, line_num, col_start, col_end, details):
+        super().__init__(file_name, line_num, col_start, col_end, 'Illegal Character', details)
 
 class NumberNode:
     def __init__(self,token):
@@ -152,7 +187,6 @@ class NumberNode:
 
     def __repr__(self):
         return f'NumberNode({self.token.value})'
-
 
 class OperationNode:
     def __init__(self, left_node, operator_token, right_node):
@@ -163,56 +197,30 @@ class OperationNode:
     def __repr__(self):
         return f'OperationNode({self.left_node}, {self.operator_token.value}, {self.right_node})'
 
-
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.token_idx = -1
         self.advance()
 
+    def parse (self):
+        print(self.tokens)
+    
     def advance(self):
         self.token_idx += 1
         if self.token_idx < len(self.tokens):
             self.current_token = self.tokens[self.token_idx]
-        return self.current_token
+            return self.current_token
     
-    def parse (self):
-        expression = []
-
-        while self.current_token is not None:
-            print ("Parsing...", self.current_token)
-            self.advance()
-            if self.current_token == RR_int or self.current_token == RR_float:
-                self.factor()
-                print("factored")
-            elif self.current_token == RR_plus or self.current_token == RR_minus:
-                self.term()
-                print("termed")
-            elif self.current_token == RR_mul or self.current_token == RR_div:
-                self.expression()
-                print("expressed")
-            elif self.current_token == None:
-                print("Parsing Complete")
-                break
-            else:
-                print("error token:", self.current_token)
-                raise Exception("Parsing Error: Invalid Token")
-            self.advance()
-
-        
-                        
-
     def factor(self):
         current_token = self.current_token
-
         if current_token == RR_int or current_token == RR_float:
             self.advance()
             return NumberNode(current_token)
-
+    
     def term(self):
         left = self.factor()
         opTree = self.factor()
-
         while self.current_token == RR_mul or self.current_token == RR_div:
             operator_token = self.current_token
             self.advance()
@@ -220,11 +228,10 @@ class Parser:
             opTree = OperationNode(left, operator_token, right)
 
         return opTree
-
+    
     def expression(self):
         left = self.term()
         opTree = self.term()
-
         while self.current_token == RR_plus or self.current_token == RR_minus:
             operator_token = self.current_token
             self.advance()
@@ -232,24 +239,3 @@ class Parser:
             opTree = OperationNode(left, operator_token, right)
 
         return opTree
-
-if __name__ == "__main__":
-    while True:
-        # while True, ask for input and tokenize it
-        text = input("RR_int> ")
-        if text == "q":
-            # if exit, break out of the loop
-            break
-        lexer = Lexer(text)
-        tokens, errors = lexer.make_tokens()
-        if tokens: # For Tokenizing
-            print("Inputed Text: ", text)
-            print("Generated Tokens: ", tokens)  # Print each error separately
-            parser = Parser(tokens)
-            try:
-                result = parser.parse()
-                print("Expression Tree:", result)
-            except Exception as e:
-                print("Parsing Error:", str(e))
-        else:
-            print(errors.display())
