@@ -130,6 +130,7 @@ class Lexer:
 class ParenthesisMatcher:
     def __init__(self):
         self.stack = []
+        self.errors = []
 
     def is_opening(self, char):
         return char in '([{'
@@ -143,22 +144,19 @@ class ParenthesisMatcher:
                (open_char == '{' and close_char == '}')
 
     def is_balanced(self, input_string):
-        for char in input_string:
+        for column, char in enumerate(input_string, start=1):
             if self.is_opening(char):
-                self.stack.append(char)
+                self.stack.append((char, column))
             elif self.is_closing(char):
-                if not self.stack or not self.matches(self.stack.pop(), char):
-                    return False
-
-        return len(self.stack) == 0
-
-# Example usage:
-matcher = ParenthesisMatcher()
-input_string = "({[()]})"
-if matcher.is_balanced(input_string):
-    print("Parentheses are balanced.")
-else:
-    print("Parentheses are not balanced.")
+                if not self.stack or not self.matches(self.stack[-1][0], char):
+                    self.errors.append(ParenthesisError(file_name="Grammar.txt", line_num=1, col_start=column, col_end=column, details="Missing opening parenthesis"))
+                else:
+                    self.stack.pop()
+        while self.stack:
+            open_char, column = self.stack.pop()
+            self.errors.append(ParenthesisError(file_name="Grammar.txt", line_num=1, col_start=column, col_end=column, details="Missing closing parenthesis"))
+        
+        return self.errors
 
 class Error:
     def __init__(self, file_name ,line_num, col_start, col_end, error_name, details):
@@ -180,6 +178,10 @@ class Error:
 class SyntaxError(Error):
     def __init__(self, file_name, line_num, col_start, col_end, details):
         super().__init__(file_name, line_num, col_start, col_end, 'Illegal Character', details)
+
+class ParenthesisError(Error):
+    def __init__(self, file_name, line_num, col_start, col_end, details):
+        super().__init__(file_name, line_num, col_start, col_end, 'Unmatched Parenthesis', details)
 
 class NumberNode:
     def __init__(self,token):
@@ -204,8 +206,8 @@ class Parser:
         self.advance()
 
     def parse (self):
-        print(self.tokens)
-    
+        return self.expression()
+        
     def advance(self):
         self.token_idx += 1
         if self.token_idx < len(self.tokens):

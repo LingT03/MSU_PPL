@@ -6,15 +6,23 @@ if file_name:
     with open(file_name, 'r') as file:
         for line in file:
             text = line.strip()
-            # check line for parenthesis matching
+            # Check line for parenthesis matching
             matcher = ParenthesisMatcher()
-            if not matcher.is_balanced(text):
-                print("Parenthesis Error: Unbalanced Parenthesis")
+            errors = matcher.is_balanced(text)
+
+            print("Input Text: ", text)
+            
+            # Print any parenthesis matching errors
+            for error in errors:
+                print(error.display())
+            
+            if errors:
+                # If there are parenthesis matching errors, break the loop
                 break
+            
             lexer = Lexer(text, file_name)
             tokens, errors = lexer.make_tokens()
             if tokens:
-                print("Input Text: ", text)
                 print("Generated Tokens: ", tokens)
                 parser = Parser(tokens)
                 try:
