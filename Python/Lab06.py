@@ -26,6 +26,7 @@ def prompt():
     print("\nWhich program would you like to run?")
     print("1. Intersections")
     print("2. Even-Odd Count")
+    print("q. Quit")
 
 if __name__ == "__main__":
     while True:
@@ -37,18 +38,20 @@ if __name__ == "__main__":
             a = ['b', 2, 'a', 4, 5]
             b = [2, 4, 6, 'a', 10]
             
+            print ("\n Array 1: ", a)
+            print (" Array 2: ", b)
             print("\n The common elements are: ", intersections(a, b))
-            print("=============================================")
+            print("\n=============================================")
 
         elif choice == "2":
             # array to test for even-odd count
             a = [1, 2, 3, 4, 5, 6, 7, 8, 9]
             
             even, odd = num_count(a)
-            
+            print ("\n Array: ", a)
             print("\n Number of even numbers: ", even)
             print(" Number of odd numbers: ", odd)
-            print("=============================================")
+            print("\n=============================================")
 
         elif choice == "q":
             break
