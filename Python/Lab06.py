@@ -13,13 +13,8 @@ def intersections(a, b):
 """Returns the number of times there is an even and odd number in a given arrary of int with lambda function"""
 # Question 2
 def num_count(a):
-    even = 0
-    odd = 0
-    for i in a:
-        if i % 2 == 0:
-            even += 1
-        else:
-            odd += 1
+    even = len(list(filter(lambda x: x % 2 == 0, a)))
+    odd = len(list(filter(lambda x: x % 2 != 0, a)))
     return even, odd
 
 def prompt():
