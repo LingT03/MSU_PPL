@@ -1,32 +1,44 @@
-def my_accumlator(adder):
+def my_accumlator():
     # initialize the sum
-    sum = 0
-    sum =+ adder
-    return sum
+    sum = 0 
+    def add(adder):
+        # nonlocal sum
+        nonlocal sum
+        sum += adder
+        return sum
+    return add
 
-def gen_h(input):
-#Produce iterator of ints that only have factors in {2, 3, 5}.
-    i = int(input)
+def gen_h():
+    i = 1
     while True:
-        if i % 2 == 0 or i % 3 == 0 or i % 5 == 0:
+        num = i
+        while num % 2 == 0:
+            num //= 2
+        while num % 3 == 0:
+            num //= 3
+        while num % 5 == 0:
+            num //= 5
+        if num == 1:
             yield i
         i += 1
 
-def validate_password(password):
-    # check if password begins with 'cs3'
-    if password[0:3] != 'cs3':
-        return False
-    # check if password contains at least one capital letter
-    if password.islower():
-        return False
-    # check if password contains at least one number aside from the first three characters
-    if password[3:].isalpha():
-        return False
-    return True
+def validate_password(func):
+    def check(password):
+        # check if password begins with 'cs3' ignoring case
+        if password[:3].lower() != "cs3":
+            raise ValueError("Password must begin with 'cs3'")
+        # check if password contains at least one capital letter
+        if password.islower():
+        # check if password contains at least one number aside from the first three characters
+            raise ValueError("Password must contain at least one capital letter")
+        if password[3:].isalpha():
+            raise ValueError("Password must contain at least one number aside from the first three characters")
+        return func(password)
+    return check
 
 @validate_password
-def accept_new_password(password):
-    print("Password accepted")
+def accept_new_password(accept_new_pas):
+    print(f"Password accepted: {accept_new_pas}")
 
 def prompt():
     print("\nWhich program would you like to run?")
@@ -45,28 +57,34 @@ if __name__ == "__main__":
                 print("=============================================")
                 print("\n\t\t  Accumulator")
 
-                adder = int(input("\n Enter a number to add: "))
-                print("\n The sum is: ", my_accumlator(adder))
+                acc = my_accumlator()
+                add1 = int(input("\n Enter a number to add: "))
+                print("\n The sum is: ", acc(add1))
+                add1 = int(input("\n Enter a number to add: "))
+                print("\n The sum is: ", acc(add1))
 
-                acc2 = my_accumlator
-                adder = int(input("\n Enter a number to add: "))            
-                print("\n The sum is: ", acc2(adder))
+                acc2 = my_accumlator()
+                add2 = int(input("\n Enter a number to add: "))            
+                print("\n The sum is: ", acc2(add2))
 
                 acc3 = acc2
-                adder = int(input("\n Enter a number to add: "))
-                print("\n The sum is: ", acc3(adder))
+                add2 = int(input("\n Enter a number to add: "))
+                print("\n The sum is: ", acc3(add2))
             
                 # break out 
-                choice = input("\n Would you like to continue (y/n)? ")
-                if choice == "n":
-                    break
+                print("\n            DEMONSTRATION COMPLETE!")
+                break            
+                
         elif choice == "2":
             print("\n\t\t  Generator")
             print("=============================================")
 
-            range = int(input("\n Enter a number: "))
-            print("\n The iterator is: ", gen_h(range))
-
+            rangeof = int(input("\n Enter a range: "))
+            values = gen_h()
+            
+            generated_num = [next(values) for _ in range(rangeof)]
+            print("\n The generated numbers are: ", generated_num)
+            print("\n            DEMONSTRATION COMPLETE!")
 
         elif choice == "3":
             print("\n\t\t  Decorator")
@@ -78,8 +96,14 @@ if __name__ == "__main__":
             print("2. Must contain at least one capital letter")
             print("3. Must contain at least one number aside from the first three characters")
 
-            password = input("\n Enter a password: ")
-            accept_new_password(password)
+            while True:
+                try:
+                    password = input("\nEnter a password: ")
+                    accept_new_password(password)
+                    break
+                except ValueError as e:
+                    print(e)
+                    continue
 
         elif choice == "q":
             break
