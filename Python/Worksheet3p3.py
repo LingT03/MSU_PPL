@@ -1,9 +1,11 @@
 '''
 Ling Thang
 
-To my surprise the pseudo code that I wrote for the imperative was almost perfect if the aid of Co-pilot
-I was able to debug the syntax errors. The declarative was a bit more difficult to write because in my pseudocode I had 
-assumed that there would be a py package however GPT demonstart a way without the need to import. 
+To my surprise the pseudo code that I wrote for the imperative was almost 
+perfect if the aid of Co-pilot I was able to debug the syntax errors. The declarative 
+was a bit more difficult to write because in my pseudocode I had assumed that python 
+would have a simple way to achieve the result. surprisingly after debugging 
+syntax errors my code pseudo were shockingly close! 
 '''
 
 # Slice Imperative
