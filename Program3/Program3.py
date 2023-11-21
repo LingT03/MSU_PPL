@@ -1,4 +1,3 @@
-# Initialize the text to tokenize
 RR_int = "RR_int"
 RR_float = "RR_float"
 RR_plus = "RR_plus"
@@ -8,6 +7,8 @@ RR_div = "RR_div"
 RR_OpenPar = "RR_OpenPar"
 RR_ClosePar = "RR_ClosePar"
 DIGITS = '0123456789'
+
+
 class Token:
     # Token class to store the token type and value
     def __init__(self, value, token_type):
@@ -40,64 +41,107 @@ class Lexer:
     def make_tokens(self):
         # function to make tokens
         tokens = []  # list to store tokens
-        errors = [] # list to store errors
 
         while self.current_character is not None:
-            
+            errors = []  # list to store errors for the current iteration
 
-                if self.current_character.isspace():
-                    # if space ignore and move to next character
-                    self.advance()
-                elif self.current_character in DIGITS:
-                    # if digit, append the digits to the tokens list
-                    tokens.append(self.make_digits())
-                elif self.current_character == '+':
-                    # if plus sign, append RR_plus to the tokens list
-                    tokens.append(RR_plus)
-                    self.advance()
-                elif self.current_character == '-':
-                    # if minus sign, append RR_minus to the tokens list
-                    tokens.append(RR_minus)
-                    self.advance()
-                elif self.current_character == '*':
-                    # if multiplication sign, append RR_mul to the tokens list
-                    tokens.append(RR_mul)
-                    self.advance()
-                elif self.current_character == '/':
-                    # if division sign, append RR_div to the tokens list
-                    tokens.append(RR_div)
-                    self.advance()
-                elif self.current_character == '(':
-                    # if open parenthesis, append RR_OpenPar to the tokens list
-                    tokens.append(RR_OpenPar)
-                    self.advance()
-                elif self.current_character == ')':
-                    # if close parenthesis, append RR_ClosePar to the tokens list
-                    tokens.append(RR_ClosePar)
-                    self.advance()
-                
-            
-                else:
-                    char = self.current_character
-                    errorchar = char
-                    err_start = self.position
-                    line_num = self.line_num
-                    file_name = self.file_name
+            # if starting position is oporator, append error
+            if self.position == 0 and self.current_character in '+*/':
+                errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Starting position cannot be an operator"))
+                break
 
-                    # go through the text until we reach a space a number integer or operator
-                    while char is not None and char.isspace() is False and char not in DIGITS and char not in '+-*/':
-                        char = self.current_character
+            if self.current_character.isspace():
+                # if space ignore and move to the next character
+                self.advance()
+            elif self.current_character in DIGITS:
+                # if digit, append the digits to the tokens list
+                tokens.append(self.make_digits())
+            elif self.current_character == '+':
+                # if plus sign, append RR_plus to the tokens list
+                tokens.append(RR_plus)
+                if self.position + 1 < len(self.text):
+                    if self.text[self.position + 1] in '+-*/':
+                        errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Duplicate operator"))
+                        break
+                    else:
                         self.advance()
-                        # if we reach the end length of the text, break
-                        if self.position >= len(self.text):
-                            break
+            elif self.current_character == '-':
+                # if minus sign, append RR_minus to the tokens list
+                tokens.append(RR_minus)
+                if self.position + 1 < len(self.text):
+                    if self.text[self.position + 1] in '+-*/':
+                        errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Duplicate operator"))
+                        break
+                    else:
+                        self.advance()
+            elif self.current_character == '*':
+                # if multiplication sign, append RR_mul to the tokens list
+                tokens.append(RR_mul)
+                if self.position + 1 < len(self.text):
+                    if self.text[self.position + 1] in '+-*/':
+                        errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Duplicate operator"))
+                        break
+                    else:
+                        self.advance()
+            elif self.current_character == '/':
+                # if division sign, append RR_div to the tokens list
+                tokens.append(RR_div)
+                if self.position + 1 < len(self.text):
+                    if self.text[self.position + 1] in '+-*/':
+                        errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Duplicate operator"))
+                        break
+                    else:
+                        self.advance()
+            elif self.current_character == '(':
+                # if open parenthesis, append RR_OpenPar to the tokens list
+                tokens.append(RR_OpenPar)
+                self.advance()
+            elif self.current_character == ')':
+                # if close parenthesis, append RR_ClosePar to the tokens list
+                tokens.append(RR_ClosePar)
+                self.advance()
+            else:
+                char = self.current_character
+                errorchar = char
+                err_start = self.position
+                line_num = self.line_num
+                file_name = self.file_name
+                err_end = self.position
 
-                        err_end = self.position - 1
+                # go through the text until we reach a space, a number (integer or float), an operator, or a character
+                while char is not None and char.isspace() is False and char not in DIGITS and char not in '+-*/' and not char.isalpha():
+                    char = self.current_character
+                    self.advance()
+                    # if we reach the end length of the text, break
+                    if self.position >= len(self.text):
+                        break
 
-                    errors.append(SyntaxError(file_name, line_num, err_start, err_end, "'" + errorchar + "'"))
+                    err_end = self.position - 1
+
+                if char.isalpha():
+                    # if the character is an alphabet, raise an error
+                    errors.append(SyntaxError(file_name, line_num, err_start, err_end, "'" + errorchar + "' Char not allowed"))
+                    break
+                else:
+                    # if the character is not recognized and not None, you can either raise an error or skip it
+                    errors.append(SyntaxError(file_name, line_num, err_start, err_end, "'" + errorchar + "' is not a valid token"))
+                    break
+                    
+            # Extend the global errors list with the errors for the current iteration
+            errors.extend(errors)
 
         return tokens, errors
 
+    def dupOpcheck(self):
+        # checks if the next character is an operator
+        if self.position + 1 < len(self.text):
+            if self.text[self.position + 1] in '+-*/':
+                print("Duplicate operator")
+                errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Duplicate operator"))
+                self.advance()
+            else:
+                self.advance()
+    
     def make_digits(self):
         # function to check if the Digit is an int or float
         dig_str = ""  # string to store the digits
@@ -108,24 +152,19 @@ class Lexer:
             if self.current_character == '.':
                 # if dot increment dot counter
                 dot_cnt += 1
+                if dot_cnt > 1:
+                    # if there is more than one dot, raise an error
+                    print("Multiple dots in a number")
+                    errors.append(SyntaxError(self.file_name, self.line_num, self.position, self.position + 1, "Multiple dots in a number"))
+                    break
             dig_str += self.current_character
             self.advance()
-
-            if dot_cnt > 1:
-                # if there is more than one dot, raise an error
-                return self.float_error("Invalid float!! multiple dots!")
 
         if dot_cnt == 0:  # no dot = int
             return Token(RR_int, int(dig_str))
 
         elif dot_cnt == 1:  # one dot = float
             return Token(RR_float, float(dig_str))
-
-    def float_error(self, error_name):
-        # function to catch multiple dots in a float
-        result = f'{error_name} Second Dot on COL:{self.current_character}'
-        self.advance()
-        return result
 
 class ParenthesisMatcher:
     def __init__(self):
@@ -241,40 +280,55 @@ class Parser:
             opTree = OperationNode(left, operator_token, right)
 
         return opTree
-# Search for a .txt file in the current directory
-file_name = "Expression.txt"
+
+tests = [
+    "1+2+3+4",      # Test 1
+    "1*2*3*4",       # Test 2
+    "1-2-3-4",       # Test 3
+    "1/2/3/4",       # Test 4
+    "1*2+3*4",       # Test 5
+    "1+2*3+4",       # Test 6
+    "(1+2)*(3+4)",   # Test 7
+    "1+(2*3)*(4+5)",  # Test 8
+    "1+(2*3)/4+5",    # Test 9
+    "5/(4+3)/2",      # Test 10
+    "1 + 2.5",        # Test 11
+    "125",            # Test 12
+    "-1",             # Test 13
+    "-1+(-2)",        # Test 14
+    "-1+(-2.0)",      # Test 15
+    "     ",          # Test 16
+    "1*2,5",          # Test 17
+    "1*2.5e2",        # Test 18
+    "M1 + 2.5",       # Test 19
+    "1 + 2&5",        # Test 20
+    "1 * 2.5.6",      # Test 21
+    "1 ** 2.5",       # Test 22
+    "*1 / 2.5"        # Test 23
+]
 
 if __name__ == "__main__":
-    if file_name:
-        with open(file_name, 'r') as file:
-            for line in file:
-                text = line.strip()
-                # Check line for parenthesis matching
-                matcher = ParenthesisMatcher()
-                errors = matcher.is_balanced(text)
 
-                print("Input Text: ", text)
-                
-                # Print any parenthesis matching errors
-                for error in errors:
-                    print(error.display())
-                
-                if errors:
-                    # If there are parenthesis matching errors, break the loop
-                    break
-                
-                lexer = Lexer(text, file_name)
-                tokens, errors = lexer.make_tokens()
-                if tokens:
-                    print("Generated Tokens: ", tokens)
-                    parser = Parser(tokens)
-                    try:
-                        result = parser.parse()
-                        print("Expression Tree:", result)
-                    except Exception as e:
-                        print("Parsing Error:", str(e))
-                else:
-                    for error in errors:
-                        print(error.display())  # Display the error message for each error object
-    else:
-        print("No .txt file found in the current directory.")
+    for idx, text in enumerate(tests, start=1):
+        print(f"\nTest {idx}: {text}")
+
+        # skip if line if empty
+        if not text:
+            continue
+        
+        # Check line for parenthesis matching
+        lexer = Lexer(text, "test")  # Pass a dummy file name for consistency
+        tokens, errors = lexer.make_tokens()
+
+        # Print errors if there are any
+        if errors:
+            for error in errors:
+                print(error.display())
+        else:
+            try:
+                # Formatted print
+                print(f"Evaluating: {text} = {eval(text)}", "\n")
+            except Exception as e:
+                print("Parsing Error:", str(e), "\n")
+        
+        print("-" * 30)
