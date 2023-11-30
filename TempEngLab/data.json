@@ -1,0 +1,102 @@
+[
+  {
+    "subject": "CS",
+    "number": "111",
+    "title": "Introduction to Computer Science",
+    "professor": "Dr. Smith",
+    "days": "MWF",
+    "time": "10:00-10:50",
+    "location": "AES",
+    "room": "101"
+  },
+  {
+    "subject": "CS",
+    "number": "112",
+    "title": "Advanced Computer Science",
+    "professor": "Dr. Johnson",
+    "days": "TTH",
+    "time": "11:00-11:50",
+    "location": "BES",
+    "room": "102"
+  },
+  {
+    "subject": "CS",
+    "number": "113",
+    "title": "Data Structures and Algorithms",
+    "professor": "Dr. Brown",
+    "days": "MWF",
+    "time": "12:00-12:50",
+    "location": "CES",
+    "room": "103"
+  },
+  {
+    "subject": "CS",
+    "number": "114",
+    "title": "Software Engineering",
+    "professor": "Dr. White",
+    "days": "TTH",
+    "time": "1:00-1:50",
+    "location": "DES",
+    "room": "104"
+  },
+  {
+    "subject": "CS",
+    "number": "115",
+    "title": "Database Management",
+    "professor": "Dr. Black",
+    "days": "MWF",
+    "time": "2:00-2:50",
+    "location": "EES",
+    "room": "105"
+  },
+  {
+    "subject": "CS",
+    "number": "116",
+    "title": "Network Security",
+    "professor": "Dr. Gray",
+    "days": "TTH",
+    "time": "3:00-3:50",
+    "location": "FES",
+    "room": "106"
+  },
+  {
+    "subject": "CS",
+    "number": "117",
+    "title": "Artificial Intelligence",
+    "professor": "Dr. Red",
+    "days": "MWF",
+    "time": "4:00-4:50",
+    "location": "GES",
+    "room": "107"
+  },
+  {
+    "subject": "CS",
+    "number": "118",
+    "title": "Human-Computer Interaction",
+    "professor": "Dr. Green",
+    "days": "TTH",
+    "time": "5:00-5:50",
+    "location": "HES",
+    "room": "108"
+  },
+  {
+    "subject": "CS",
+    "number": "119",
+    "title": "Computer Graphics",
+    "professor": "Dr. Blue",
+    "days": "MWF",
+    "time": "6:00-6:50",
+    "location": "IES",
+    "room": "109"
+  },
+  {
+    "subject": "CS",
+    "number": "120",
+    "title": "Web Development",
+    "professor": "Dr. Yellow",
+    "days": "TTH",
+    "time": "7:00-7:50",
+    "location": "JES",
+    "room": "110"
+  }
+]
